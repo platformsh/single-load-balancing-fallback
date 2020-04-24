@@ -1,0 +1,23 @@
+- &appdef
+    name: app
+    type: 'java:8'
+    disk: 1024
+    source:
+        root: /
+    hooks:
+        build: mvn clean install
+    mounts:
+        'server/':
+            source: local
+            source_path: server_source
+    web:
+        commands:
+            start: |
+                cp target/dependency/webapp-runner.jar server/webapp-runner.jar
+                cp target/tomcat.war server/tomcat.war
+                cd server && java -jar -Xmx$(jq .info.limits.memory /run/config.json)m -XX:+ExitOnOutOfMemoryError webapp-runner.jar --port $PORT tomcat.war
+
+
+-
+   <<: *appdef
+   name: app2
